@@ -1,0 +1,13 @@
+[package]
+name = "categories"
+
+authors = ["Pollen Collective"]
+description = "Category theory in Rust"
+edition = "2021"
+keywords = ["mathematics", "categories"]
+license = "AGPL-3.0"
+readme = "README.md"
+repository = "https://github.com/PollenCollective/categories"
+version = "0.1.0"
+
+[dependencies]
