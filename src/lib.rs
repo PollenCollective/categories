@@ -1,5 +1,5 @@
 //! # Categories
-//! 
+//!
 //! Categories over generic objects with power object management.
 //!
 //! This module provides traits and data structures for categorical constructions in mathematics.

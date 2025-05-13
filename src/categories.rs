@@ -1,6 +1,6 @@
-use crate::morphism::{HomSet, Morphism, check_eq_morphisms};
-use crate::object::{Object, PowerObjectType,PowerObjectGenerator};
-use std::{collections::HashMap};
+use crate::morphism::{check_eq_morphisms, HomSet, Morphism};
+use crate::object::{Object, PowerObjectGenerator, PowerObjectType};
+use std::collections::HashMap;
 
 /// A `Category` of a single class of object.
 ///
@@ -311,8 +311,8 @@ impl<O: Object, P: PowerObjectGenerator<O>> CategoryBuilder<O, P> {
 
 #[cfg(test)]
 mod tests {
-    use crate::morphism::compose;
     use super::*;
+    use crate::morphism::compose;
 
     // A toy object, identified just by a short &str label
     #[derive(Clone, PartialEq, Eq, Hash, Debug)]
