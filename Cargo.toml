@@ -1,13 +1,15 @@
 [package]
 name = "categories"
 
-authors = ["Pollen Collective"]
+authors = ["Mesocarp"]
 description = "Category theory in Rust"
 edition = "2021"
 keywords = ["mathematics", "categories"]
 license = "AGPL-3.0"
 readme = "README.md"
-repository = "https://github.com/PollenCollective/categories"
+repository = "https://github.com/TheMesocarp/categories"
+homepage = "https://github.com/TheMesocarp/categories"
 version = "0.1.0"
+
 
 [dependencies]
