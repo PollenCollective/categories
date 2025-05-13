@@ -1,136 +1,6 @@
-//! Categories over generic objects with power object management.
-//!
-//! This module provides traits and data structures for categorical constructions in mathematics.
-//! A category consists of objects and morphisms (maps between objects) that satisfy certain
-//! properties:
-//! - Every object has an identity morphism
-//! - Morphisms can be composed when their domain/codomain match
-//! - Composition is associative
-//!
-//! The implementation supports:
-//! - Generic objects and morphisms with type safety
-//! - Power object management (products, coproducts, exponentials)
-//! - Both lazy construction and builder pattern approaches
-//!
-//! # Mathematical Background
-//!
-//! ## Core Categorical Concepts
-//!
-//! - **Objects**: Abstract entities in a category (can represent sets, groups, topological spaces,
-//!   etc.)
-//! - **Morphisms**: Maps between objects (generalizations of functions between sets)
-//! - **HomSet**: Collection of all morphisms between two specific objects A and B, denoted Hom(A,B)
-//!
-//! ## Power Objects
-//!
-//! Power objects represent constructions between objects:
-//!
-//! - **Product**: A × B with projections π₁: A×B → A and π₂: A×B → B satisfying the universal
-//!   property
-//! - **Coproduct**: A + B with injections i₁: A → A+B and i₂: B → A+B satisfying the universal
-//!   property
-//! - **Exponential**: Bᴬ representing "all morphisms from A to B" with evaluation map ev: Bᴬ×A → B
-//!
-//! ## Special Morphisms
-//!
-//! - **Monic**: A morphism f is monic if it's left-cancellable: f∘g₁ = f∘g₂ implies g₁ = g₂
-//! - **Terminal Object**: An object T where for every object A, there exists exactly one morphism A
-//!   → T
-
-use std::{collections::HashMap, fmt::Debug, hash::Hash};
-
-/// An object in a category.
-///
-/// In category theory, objects are abstract entities. They could represent anything from
-/// sets to groups, topological spaces, or even other categories.
-///
-/// Objects must be clonable, comparable, and debuggable to support categorical operations.
-pub trait Object: Clone + PartialEq + Debug {}
-
-/// A morphism between objects in a category.
-///
-/// In category theory, morphisms are maps between objects that generalize the notion
-/// of functions between sets. Each morphism has:
-/// - A domain (source object)
-/// - A codomain (target object)
-/// - A mapping operation that transforms elements from domain to codomain
-///
-/// Morphisms must preserve the category's structure and are composable when
-/// the domain of one matches the codomain of another.
-pub trait Morphism {
-    type Domain: Object;
-    type Codomain: Object;
-    fn domain(&self) -> &Self::Domain;
-    fn codomain(&self) -> &Self::Codomain;
-    fn map(&self, domain: &Self::Domain) -> Self::Codomain;
-}
-
-/// Compares two morphisms for equality by checking domain, codomain, and behavior.
-///
-/// Two morphisms are considered equal if:
-/// 1. They have the same domain
-/// 2. They have the same codomain
-/// 3. They transform their domain to the same result
-pub fn check_eq_morphisms<A: Object, B: Object>(
-    first: &dyn Morphism<Domain = A, Codomain = B>,
-    second: &dyn Morphism<Domain = A, Codomain = B>,
-) -> bool {
-    if first.domain() == second.domain()
-        && first.codomain() == second.codomain()
-        && first.map(first.domain()) == second.map(second.domain())
-    {
-        return true;
-    }
-    false
-}
-
-/// Composes two morphisms f: A → B and g: B → C to produce g∘f: A → C.
-///
-/// In category theory, composition is a fundamental operation that combines
-/// two compatible morphisms (where the codomain of the first equals the domain of the second)
-/// to create a new morphism.
-pub fn compose<A: Object, B: Object, C: Object>(
-    domain: &A,
-    first: &dyn Morphism<Domain = A, Codomain = B>,
-    second: &dyn Morphism<Domain = B, Codomain = C>,
-) -> C {
-    second.map(&first.map(domain))
-}
-
-/// A collection of morphisms between two specific objects.
-///
-/// In category theory, Hom(A,B) represents all possible morphisms from object A to object B.
-type HomSet<A, B> = Vec<Box<dyn Morphism<Domain = A, Codomain = B>>>;
-
-/// Types of power objects that can be generated in a category.
-///
-/// Power objects represent different ways to construct new objects from existing ones:
-/// - Product: Combines two objects with projections (like cartesian product for sets)
-/// - Coproduct: Represents disjoint union with injections (like disjoint union for sets)
-/// - Exponential: Represents "morphism objects" (like function spaces for sets)
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub enum PowerObjectType {
-    /// Product of objects at indices i and j (A×B with projections)
-    Product(usize, usize),
-    /// Coproduct of objects at indices i and j (A+B with injections)
-    Coproduct(usize, usize),
-    /// Exponential object representing "all morphisms from i to j" (Bᴬ)
-    Exponential(usize, usize),
-}
-
-/// Generates power objects of a specific type for a category.
-///
-/// This trait allows categories to construct the standard categorical power objects:
-/// - Products (A×B) with their projection morphisms
-/// - Coproducts (A+B) with their injection morphisms
-/// - Exponentials (Bᴬ) with their evaluation morphisms
-pub trait PowerObjectGenerator<O: Object> {
-    fn generate_power_object(
-        &self,
-        power_type: &PowerObjectType,
-        objects: &[O],
-    ) -> (O, Vec<Box<dyn Morphism<Domain = O, Codomain = O>>>);
-}
+use crate::morphism::{HomSet, Morphism, check_eq_morphisms};
+use crate::object::{Object, PowerObjectType,PowerObjectGenerator};
+use std::{collections::HashMap};
 
 /// A `Category` of a single class of object.
 ///
@@ -441,6 +311,7 @@ impl<O: Object, P: PowerObjectGenerator<O>> CategoryBuilder<O, P> {
 
 #[cfg(test)]
 mod tests {
+    use crate::morphism::compose;
     use super::*;
 
     // A toy object, identified just by a short &str label
